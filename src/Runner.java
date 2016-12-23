@@ -1,8 +1,5 @@
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -18,25 +15,28 @@ public class Runner {
                 Collections.sort(uniqueIngredients, (first, second) -> (first.charAt(0) > second.charAt(0) ? 1 : -1)));
         compThread.run();
         writeData("juice2.txt", uniqueIngredients.iterator());
-        getWashNumber(juiceList);
         writeIntData("juice3.txt", getWashNumber(juiceList));
         System.out.println("Done!");
     }
 
     private static int getWashNumber(List<Juice> juiceList) {
+       /* printJuiceList(juiceList);
+        System.out.println("_________________");*/
+        Collections.sort(juiceList, (first, second) -> {
+            Collections.sort(first.ingredients);
+            Collections.sort(second.ingredients);
+            if (first.ingredients.get(0).charAt(0) == second.ingredients.get(0).charAt(0)) {
+                return first.ingredients.size() > second.ingredients.size() ? 1 : -1;
+            }
+            return first.ingredients.get(0).charAt(0) > second.ingredients.get(0).charAt(0) ? 1 : -1;
+        });
+
         int washNumber = 1; /*At least in the end*/
+        printJuiceList(juiceList);
         for (int i = 0; i < juiceList.size() - 1; i++) {
             Juice currentJuice = juiceList.get(i);
             Juice nextJuice = juiceList.get(i + 1);
-            boolean isUnique = true;
-            for (int j = 0; j < currentJuice.ingredients.size(); j++) {
-                for (int k = 0; k < nextJuice.ingredients.size(); k++) {
-                    if (currentJuice.ingredients.get(j).compareTo(nextJuice.ingredients.get(k)) == 0) {
-                        isUnique = false;
-                    }
-                }
-            }
-            if (isUnique) {
+            if (!Objects.equals(currentJuice.ingredients.get(0), nextJuice.ingredients.get(0))) {
                 washNumber++;
             }
         }
@@ -73,7 +73,7 @@ public class Runner {
         }
     }
 
-    public static List<String> getUniqueIngredients(List<Juice> juiceList) {
+    private static List<String> getUniqueIngredients(List<Juice> juiceList) {
         List<String> uniqueIngredients = new ArrayList<>();
         for (Juice currentJuice : juiceList) {
             for (String currentIngredient : currentJuice.ingredients) {
@@ -81,8 +81,7 @@ public class Runner {
                     uniqueIngredients.add(currentIngredient);
                 } else {
                     boolean isUnique = true;
-                    for (int i = 0; i < uniqueIngredients.size(); i++) {
-                        String currentUniqueIngredient = uniqueIngredients.get(i);
+                    for (String currentUniqueIngredient : uniqueIngredients) {
                         if (currentIngredient.compareTo(currentUniqueIngredient) == 0) {
                             isUnique = false;
                         }
@@ -96,16 +95,16 @@ public class Runner {
         return uniqueIngredients;
     }
 
-    public static void printJuiceList(List<Juice> juiceList) {
+    private static void printJuiceList(List<Juice> juiceList) {
         for (Juice currentJuice : juiceList) {
-            System.out.println("\n");
             for (String currentIngredient : currentJuice.ingredients) {
                 System.out.println(currentIngredient + " ");
             }
+            System.out.println("\n");
         }
     }
 
-    public static Juice getJuiceComponents(String components) {
+    private static Juice getJuiceComponents(String components) {
         Juice currentJuice = new Juice();
         Pattern pattern = Pattern.compile("\\w+\\s");
         Matcher matcher = pattern.matcher(components);
@@ -115,7 +114,7 @@ public class Runner {
         return currentJuice;
     }
 
-    public static List<Juice> getJuiceList(String way) {
+    private static List<Juice> getJuiceList(String way) {
         List<Juice> juiceList = new ArrayList<>();
         try {
             BufferedReader br = new BufferedReader(new FileReader(new File(way)));
